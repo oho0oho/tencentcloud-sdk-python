@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import multiprocessing
+import logging
 import tencentcloud
 
 
@@ -33,7 +34,7 @@ cursor.execute('''
 conn.commit()
 
 # Specify the directory to check
-directory = "/path/to/directory"
+directory = "E:\\video\\test_mp3"
 
 # Get all the file names (without extensions) in the directory
 file_names = [os.path.splitext(file)[0] for file in os.listdir(directory)]
@@ -81,6 +82,12 @@ for row in data:
         queue_GetResult.put(key)
     else:
         logging.error(f"Invalid status: {status}")
+
+# Define a function to upload a file to COS
+def upload_file(file_name):
+    # Upload the file to COS
+    
+
 
 # Define a function to upload mp3 to COS
 def upload_mp3(queue_OnDisk, queue_OnCos):

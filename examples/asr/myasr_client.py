@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import traceback
+import tencentcloud
 from tencentcloud.common import credential
 from tencentcloud.asr.v20190614 import asr_client, models
 from tencentcloud.common.exception import TencentCloudSDKException
@@ -9,7 +10,7 @@ from tencentcloud.common.exception import TencentCloudSDKException
 # Initialize the logger
 logger = logging.getLogger(__name__)
 
-class ASRClient:
+class MyASRClient:
     def __init__(self, region):
         # Configure your Tencent Cloud API credentials
         self.cred = credential.ProfileCredential().get_credential()
