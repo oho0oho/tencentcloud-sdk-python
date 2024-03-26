@@ -2,26 +2,37 @@ import logging
 import json
 import time
 import traceback
+import tencentcloud
 from tencentcloud.common import credential
 from tencentcloud.asr.v20190614 import asr_client, models
 from tencentcloud.common.exception import TencentCloudSDKException
 
 # Initialize the logger
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# Create a stream handler
+handler = logging.StreamHandler()
+# Set the level of the handler
+handler.setLevel(logging.DEBUG)
+# Add the handler to the logger
+logger.addHandler(handler)
 
-class ASRClient:
+class MyASRClient:
     def __init__(self, region):
         # Configure your Tencent Cloud API credentials
-        self.cred = credential.ProfileCredential().get_credential()
+        logger.debug("Initializing MyASRClient")
+        self.cred = credential.EnvironmentVariableCredential().get_credential()
+        logger.debug("Creating ASR client,cred: %s",self.cred)
         self.region = region
         self.client = asr_client.AsrClient(self.cred, self.region)
         self.create_rec_task_req = models.CreateRecTaskRequest()
         self.query_rec_task_req = models.DescribeTaskStatusRequest()
         params = {"ChannelNum": 1, "ResTextFormat": 2, "SourceType": 0, "ConvertNumMode": 1}
         self.create_rec_task_req._deserialize(params)
-        self.create_rec_task_req.EngineModelType = engine_type
+        self.create_rec_task_req.EngineModelType = '16k_zh_large'
 
     def create_rec_task(self, file_url):
+        logger.debug("Creating rec task")
         self.create_rec_task_req.Url = file_url
         try:
             resp = self.client.CreateRecTask(self.create_rec_task_req)
@@ -33,7 +44,8 @@ class ASRClient:
             logger.info(traceback.format_exc())
             return None, None
 
-    def initialize_query_rec_task_req(self, task_id):
+    def query_rec_task(self, task_id):
+        logger.debug("Initializing query rec task request")
         params = '{"TaskId":' + str(task_id) + '}'
         self.query_rec_task_req.from_json_string(params)
         result = ""
