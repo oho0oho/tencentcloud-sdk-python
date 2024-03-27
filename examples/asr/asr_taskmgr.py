@@ -14,6 +14,12 @@ def upload_file(file_name):
 def key2url(key):
     return f"https://kuai-video-1255989664.cos.ap-guangzhou.myqcloud.com/3xt2waf6hw86e22/www_video_mp3/{key}.mp3"
 
+# Define a function to upload a file to COS
+def upload_file(file_name):
+    # Upload the file to COS
+    
+
+
 # Define a function to upload mp3 to COS
 def upload_mp3(queue_OnDisk, queue_OnCos):
     # Initialize the logger
