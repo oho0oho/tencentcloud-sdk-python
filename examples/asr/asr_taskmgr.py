@@ -205,7 +205,7 @@ if __name__ == '__main__':
     asring_count = 0
     finish_count = 0
     for row in data:
-        key, status, _, task_id, _ = row
+        key, status, _, task_id, result_str = row
         if status == "OnDisk":
             queue_OnDisk.put(key)
             ondisk_count += 1
@@ -218,11 +218,12 @@ if __name__ == '__main__':
         elif status == "GetResult":
             finish_count += 1
         else:
-            logging.error(f"Invalid status: {status}")
-    logging.debug(f"ondiskcount: {ondisk_count}")
-    logging.debug(f"oncoscount: {oncos_count}")
-    logging.debug(f"asringcount: {asring_count}")
-    logging.debug(f"finishcount: {finish_count}")
+            logger.error(f"Invalid status: {status}")
+    logger.debug(f"ondiskcount: {ondisk_count}，{queue_OnDisk.qsize()}")
+    logger.debug(f"oncoscount: {oncos_count}")
+    logger.debug(f"asringcount: {asring_count}")
+    logger.debug(f"finishcount: {finish_count}")
+
 
 
     # Create 3 processes to process the data from each queue
