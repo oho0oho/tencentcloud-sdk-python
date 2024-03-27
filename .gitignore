@@ -4,3 +4,6 @@ dist/
 tencentcloud_sdk_python.egg-info/
 .python-version
 .tox/
+3xt2waf6hw86e22.db
+.gitignore
+mydatabase.db
