@@ -29,8 +29,8 @@ class MyASRClient:
         self.query_rec_task_req = models.DescribeTaskStatusRequest()
         params = {"ChannelNum": 1, "ResTextFormat": 2, "SourceType": 0, "ConvertNumMode": 1}
         self.create_rec_task_req._deserialize(params)
-        # self.create_rec_task_req.EngineModelType = '16k_zh_large'
-        self.create_rec_task_req.EngineModelType = '16k_zh'
+        self.create_rec_task_req.EngineModelType = '16k_zh_large'
+        #self.create_rec_task_req.EngineModelType = '16k_zh'
 
     def create_rec_task(self, file_url):
         logger.debug("Creating rec task")
@@ -54,7 +54,7 @@ class MyASRClient:
             try:
                 resp = self.client.DescribeTaskStatus(self.query_rec_task_req)
                 resp_json = resp.to_json_string()
-                logger.info(resp_json)
+                #logger.info(resp_json)
                 resp_obj = json.loads(resp_json)
                 if resp_obj["Data"]["StatusStr"] == "success":
                     result = resp_obj["Data"]["ResultDetail"]

@@ -31,13 +31,15 @@ def upload_mp3(queue_OnDisk, queue_OnCos):
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
     logger.debug("Uploading mp3 to COS begin")
+    j = 0;
     while True:
         key = queue_OnDisk.get()
         if key is None:
             break
         # Upload the mp3 file to COS
         upload_file(key)
-        logger.debug(f"Uploaded {key}.mp3 to COS")
+        j += 1
+        logger.debug(f"Uploaded No.{j}  {key}.mp3 to COS")
         # Update the status in the database
         cursor.execute("UPDATE mp3Item SET status = ? WHERE id = ?", ("OnCos", key))
         conn.commit()
@@ -61,6 +63,8 @@ def send_req(queue_OnCos, queue_AsrIng):
     cursor = conn.cursor()
     logger.debug("Send requests to ASR begin!")
     my_create_rec = myasr_client.MyASRClient("ap-guangzhou")
+    i = 0
+    j = 0
     while True:
         key = queue_OnCos.get()
         if key is None:
@@ -68,9 +72,14 @@ def send_req(queue_OnCos, queue_AsrIng):
         # Send request to ASR
         logger.debug(f"Sending request {key} to ASR")
         request_id, task_id = my_create_rec.create_rec_task(key2url(key))
+        i += 1
+        j += 1
+        if i > 19:
+            time.sleep(1)
+            i = 0
         if request_id is not None:
             # Update the status in the database
-            logger.debug(f"request_id: {request_id}, task_id: {task_id}")
+            logger.debug(f"No.{j} request_id: {request_id}, task_id: {task_id}")
             cursor.execute("UPDATE mp3Item SET status = ?, request_id = ?, task_id = ? WHERE id = ?", ("AsrIng", request_id, task_id, key))
             conn.commit()
             queue_AsrIng.put((key,task_id))
@@ -96,6 +105,8 @@ def get_result(queue_AsrIng, queue_GetResult):
     cursor = conn.cursor()
     logger.debug("Get result from ASR begin!")
     my_describe_task = myasr_client.MyASRClient("ap-guangzhou")
+    i = 0
+    j = 0
     while True:
         if not queue_AsrIng.empty():
             data = queue_AsrIng.get()
@@ -105,13 +116,18 @@ def get_result(queue_AsrIng, queue_GetResult):
                 # Rest of your code
                 # Get result from ASR
                 success, result = my_describe_task.query_rec_task(task_id)
+                i += 1
+                j += 1
+                if i > 49:
+                    time.sleep(1)
+                    i = 0
                 if success:
                     # Convert the list to a JSON string
                     result_str = json.dumps(result)
                     # Update the status in the database
                     cursor.execute("UPDATE mp3Item SET status = ?, asr_data = ? WHERE id = ?", ("GetResult", result_str, key))
                     conn.commit()
-                    logger.debug(f"Got result for {key},{result}")
+                    logger.debug(f"Got No.{j} result for {key}")
                     queue_GetResult.put(key)
                 else:
                     logging.error(f"Failed to get result for {key}")
@@ -158,7 +174,7 @@ if __name__ == '__main__':
     # Specify the directory to check
     # directory = "D:\test\3xt2waf6hw86e22\www_video_mp3"
     # directory = "D:\\test\\www_video_mp3"
-    directory = "E:\\video\\test_mp3"
+    directory = "E:\\data\\3xt2waf6hw86e22\\www_video"
 
     # Get all the file names (without extensions) in the directory
     file_names = [os.path.splitext(file)[0] for file in os.listdir(directory)]
@@ -184,20 +200,29 @@ if __name__ == '__main__':
     data = cursor.fetchall()
 
     # Insert each data into the corresponding queue based on its status
-    finishcount = 0;
+    ondisk_count = 0
+    oncos_count = 0
+    asring_count = 0
+    finish_count = 0
     for row in data:
         key, status, _, task_id, _ = row
         if status == "OnDisk":
             queue_OnDisk.put(key)
+            ondisk_count += 1
         elif status == "OnCos":
             queue_OnCos.put(key)
+            oncos_count += 1
         elif status == "AsrIng":
             queue_AsrIng.put((key, task_id))
+            asring_count += 1
         elif status == "GetResult":
-            finishcount += 1
+            finish_count += 1
         else:
             logging.error(f"Invalid status: {status}")
-    logging.debug(f"finishcount: {finishcount}")
+    logging.debug(f"ondiskcount: {ondisk_count}")
+    logging.debug(f"oncoscount: {oncos_count}")
+    logging.debug(f"asringcount: {asring_count}")
+    logging.debug(f"finishcount: {finish_count}")
 
 
     # Create 3 processes to process the data from each queue
