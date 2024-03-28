@@ -123,7 +123,7 @@ def get_result(queue_AsrIng, queue_GetResult):
                     i = 0
                 if success:
                     # Convert the list to a JSON string
-                    result_str = json.dumps(result)
+                    result_str = json.dumps(result, ensure_ascii=False)
                     # Update the status in the database
                     cursor.execute("UPDATE mp3Item SET status = ?, asr_data = ? WHERE id = ?", ("GetResult", result_str, key))
                     conn.commit()
